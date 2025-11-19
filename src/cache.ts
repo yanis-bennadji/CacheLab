@@ -1,3 +1,5 @@
+import { createHash } from 'crypto';
+
 // Définition de la forme de nos "noeuds" (les maillons de la chaîne)
 interface CacheEntry {
     key: string;
@@ -8,8 +10,8 @@ interface CacheEntry {
 class CacheStore {
     private size: number;
     private buckets: (CacheEntry | null)[]; // Un tableau contenant soit un Entry, soit null
-    private readonly HASH_SLICE_LENGTH = 8; // Nombre maximum de caractères utilisés pour le hash
     private readonly LOAD_FACTOR_THRESHOLD = 0.75; // Seuil de load factor pour déclencher le rehashing
+    private readonly HASH_HEX_LENGTH = 8; // Nombre de caractères hexadécimaux utilisés (max 64 pour SHA-256)
 
     constructor() {
         this.size = 7; // Taille initiale (nombre premier)
@@ -21,18 +23,22 @@ class CacheStore {
         }
     }
 
-    // Calcule le hash en utilisant seulement les 8 premiers caractères de la clé
+    // Calcule le hash avec crypto SHA-256 (distribution cryptographiquement sûre)
+    // Avantages: distribution parfaite, résistant aux collisions intentionnelles
     private _computeHash(key: string): number {
-        let total = 0;
-        // Limiter aux 8 premiers caractères maximum
-        const keySlice = key.length > this.HASH_SLICE_LENGTH ? key.substring(0, this.HASH_SLICE_LENGTH) : key;
+        // Créer un hash SHA-256 de la clé
+        const hash = createHash('sha256');
+        hash.update(key);
+        const digest = hash.digest('hex'); // Retourne 64 caractères hexadécimaux
         
-        // Boucle for classique (pas de reduce)
-        for (let i = 0; i < keySlice.length; i++) {
-            total += keySlice.charCodeAt(i);
-        }
-        // Le hash est déjà limité par les 8 caractères, pas besoin de masque supplémentaire
-        return total;
+        // Prendre les N premiers caractères hexadécimaux (configurable via HASH_HEX_LENGTH)
+        // Plus on prend de caractères, meilleure est la distribution
+        const hexSubstring = digest.substring(0, this.HASH_HEX_LENGTH);
+        
+        // Convertir en nombre (base 16)
+        const hashNumber = parseInt(hexSubstring, 16);
+        
+        return hashNumber;
     }
 
     // Utilise le hash slicé pour obtenir l'index du bucket
