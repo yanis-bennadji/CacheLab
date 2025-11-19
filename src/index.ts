@@ -79,6 +79,11 @@ app.get('/debug/count', (req, res) => {
     res.json({ count: cache.count() });
 });
 
+app.post('/debug/reset', (req, res) => {
+    cache.reset();
+    res.json({ message: "Cache réinitialisé" });
+});
+
 // Lancement du serveur
 const PORT = 3000;
 app.listen(PORT, () => {

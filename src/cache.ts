@@ -258,6 +258,17 @@ class CacheStore {
         const elementCount = this.count();
         return elementCount / this.size;
     }
+
+    // Reset complet du cache (pour les tests)
+    public reset(): void {
+        this.size = 7; // Retour à la taille initiale
+        this.buckets = new Array(this.size);
+        
+        // Initialisation manuelle à null
+        for (let i = 0; i < this.size; i++) {
+            this.buckets[i] = null;
+        }
+    }
 }
 
 export default new CacheStore();
