@@ -1,9 +1,20 @@
+import type { Request, Response } from 'express';
 import cache from '../cache.js';
+import type {
+    KeysResponse,
+    CreateKeyResponse,
+    GetKeyResponse,
+    UpdateKeyResponse,
+    DeleteKeyResponse,
+    ErrorResponse,
+    CreateKeyRequestBody,
+    UpdateKeyRequestBody
+} from '../types/api.types.js';
 
 /**
  * Liste toutes les clés du cache
  */
-export function listKeys(req, res) {
+export function listKeys(req: Request, res: Response<KeysResponse>): void {
     const keys = cache.keys();
     res.json({ keys });
 }
@@ -11,7 +22,10 @@ export function listKeys(req, res) {
 /**
  * Crée une nouvelle paire clé-valeur dans le cache
  */
-export function createKey(req, res) {
+export function createKey(
+    req: Request<{}, CreateKeyResponse | ErrorResponse, CreateKeyRequestBody>,
+    res: Response<CreateKeyResponse>
+): void {
     const { key, value } = req.body;
     
     cache.set(key, value);
@@ -21,7 +35,10 @@ export function createKey(req, res) {
 /**
  * Récupère la valeur associée à une clé
  */
-export function getKey(req, res) {
+export function getKey(
+    req: Request,
+    res: Response<GetKeyResponse | ErrorResponse>
+): void {
     const key = req.params.key;
     const value = cache.get(key);
 
@@ -36,7 +53,10 @@ export function getKey(req, res) {
 /**
  * Met à jour la valeur d'une clé existante
  */
-export function updateKey(req, res) {
+export function updateKey(
+    req: Request<{ key: string }, UpdateKeyResponse | ErrorResponse, UpdateKeyRequestBody>,
+    res: Response<UpdateKeyResponse | ErrorResponse>
+): void {
     const key = req.params.key;
     const { value } = req.body;
 
@@ -52,7 +72,10 @@ export function updateKey(req, res) {
 /**
  * Supprime une clé du cache
  */
-export function deleteKey(req, res) {
+export function deleteKey(
+    req: Request,
+    res: Response<DeleteKeyResponse | ErrorResponse>
+): void {
     const key = req.params.key;
     const deleted = cache.delete(key);
 

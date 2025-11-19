@@ -1,30 +1,37 @@
+import type { Request, Response } from 'express';
 import cache from '../cache.js';
+import type {
+    BucketSizeResponse,
+    LoadFactorResponse,
+    CountResponse,
+    ResetResponse
+} from '../types/api.types.js';
 
 /**
  * Retourne la taille actuelle du tableau de buckets
  */
-export function getBucketSize(req, res) {
+export function getBucketSize(req: Request, res: Response<BucketSizeResponse>): void {
     res.json({ bucketSize: cache.getBucketSize() });
 }
 
 /**
  * Retourne le facteur de charge actuel du cache
  */
-export function getLoadFactor(req, res) {
+export function getLoadFactor(req: Request, res: Response<LoadFactorResponse>): void {
     res.json({ loadFactor: cache.getLoadFactor() });
 }
 
 /**
  * Retourne le nombre total d'éléments dans le cache
  */
-export function getCount(req, res) {
+export function getCount(req: Request, res: Response<CountResponse>): void {
     res.json({ count: cache.count() });
 }
 
 /**
  * Réinitialise complètement le cache
  */
-export function resetCache(req, res) {
+export function resetCache(req: Request, res: Response<ResetResponse>): void {
     cache.reset();
     res.json({ message: "Cache réinitialisé" });
 }
