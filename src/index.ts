@@ -1,16 +1,16 @@
 import express from 'express';
-import cache from './cache.js'; // Import de notre classe
+import cache from './cache.js';
 
 const app = express();
-app.use(express.json()); // Pour lire le JSON dans le body des requêtes
+app.use(express.json());
 
-// 1. GET /keys - Lister toutes les clés
+// Lister toutes les clés
 app.get('/keys', (req, res) => {
     const keys = cache.keys();
     res.json({ keys: keys });
 });
 
-// 2. POST /keys - Créer
+// Créer une paire clé-valeur
 app.post('/keys', (req, res) => {
     const key = req.body.key;
     const value = req.body.value;
@@ -23,7 +23,7 @@ app.post('/keys', (req, res) => {
     res.status(201).json({ message: "Sauvegardé", key: key });
 });
 
-// 3. GET /keys/:key - Lire
+// Lire une valeur
 app.get('/keys/:key', (req, res) => {
     const key = req.params.key;
     const value = cache.get(key);
@@ -34,17 +34,15 @@ app.get('/keys/:key', (req, res) => {
     res.json({ key: key, value: value });
 });
 
-// 4. PUT /keys/:key - Modifier
+// Modifier une valeur existante
 app.put('/keys/:key', (req, res) => {
     const key = req.params.key;
-    const value = req.body.value; // La nouvelle valeur
+    const value = req.body.value;
 
     if (value === undefined) {
         return res.status(400).json({ error: "Valeur requise" });
     }
 
-    // Vérifier si la clé existe avant de update (selon logique REST stricte)
-    // Ou faire un "Upsert" (Update or Insert). Ici on fait simple.
     if (cache.get(key) === null) {
          return res.status(404).json({ error: "Clé introuvable pour modification" });
     }
@@ -53,7 +51,7 @@ app.put('/keys/:key', (req, res) => {
     res.json({ message: "Mis à jour", key: key, value: value });
 });
 
-// 5. DELETE /keys/:key - Supprimer
+// Supprimer une clé
 app.delete('/keys/:key', (req, res) => {
     const key = req.params.key;
     const deleted = cache.delete(key);
@@ -65,8 +63,7 @@ app.delete('/keys/:key', (req, res) => {
     }
 });
 
-// ENDPOINTS DE DEBUG (uniquement pour les tests)
-// Ces endpoints exposent les métriques internes du cache
+// Endpoints de debug pour les tests
 app.get('/debug/bucket-size', (req, res) => {
     res.json({ bucketSize: cache.getBucketSize() });
 });
@@ -84,7 +81,6 @@ app.post('/debug/reset', (req, res) => {
     res.json({ message: "Cache réinitialisé" });
 });
 
-// Lancement du serveur
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`CacheLab server running on port ${PORT}`);
