@@ -1,0 +1,16 @@
+node_modules/
+dist/
+*.log
+.env.local
+coverage/
+.DS_Store
+
+# Service specific
+cache-service/node_modules/
+cache-service/dist/
+cache-service/coverage/
+storage-service/node_modules/
+storage-service/dist/
+storage-service/coverage/
+storage-service/data/*
+!storage-service/data/.gitkeep

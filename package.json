@@ -1,0 +1,22 @@
+{
+  "name": "cache-lab",
+  "version": "1.0.0",
+  "description": "Distributed cache system with HashMap in-memory cache and persistent storage",
+  "main": "index.js",
+  "scripts": {
+    "install:all": "npm install && cd cache-service && npm install && cd ../storage-service && npm install",
+    "dev:cache": "cd cache-service && npm run dev",
+    "dev:storage": "cd storage-service && npm run dev",
+    "dev": "concurrently \"npm run dev:cache\" \"npm run dev:storage\"",
+    "build:all": "cd cache-service && npm run build && cd ../storage-service && npm run build",
+    "test:all": "cd cache-service && npm test && cd ../storage-service && npm test"
+  },
+  "keywords": ["cache", "redis", "distributed", "hashmap", "storage"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.6",
+    "concurrently": "^8.2.2"
+  }
+}

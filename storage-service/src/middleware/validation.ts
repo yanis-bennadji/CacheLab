@@ -1,0 +1,71 @@
+import { Request, Response, NextFunction } from 'express';
+import { isValidKey, isValidValueSize } from '../../../shared/utils/helpers';
+import { ValidationError } from '../../../shared/types';
+
+const MAX_KEY_LENGTH = 256;
+const MAX_VALUE_SIZE = 10485760; // 10MB for storage
+
+/**
+ * Validate storage key in request parameters
+ */
+export function validateKey(req: Request, res: Response, next: NextFunction): void {
+  const key = req.params.key || req.body.key;
+
+  if (!key) {
+    res.status(400).json({
+      success: false,
+      error: 'Key is required'
+    });
+    return;
+  }
+
+  if (!isValidKey(key, MAX_KEY_LENGTH)) {
+    res.status(400).json({
+      success: false,
+      error: `Key must be a non-empty string with maximum length of ${MAX_KEY_LENGTH} characters`
+    });
+    return;
+  }
+
+  next();
+}
+
+/**
+ * Validate storage entry data in request body
+ */
+export function validateStorageEntry(req: Request, res: Response, next: NextFunction): void {
+  const { key, value } = req.body;
+
+  const errors: ValidationError[] = [];
+
+  // Validate key
+  if (!key) {
+    errors.push({ field: 'key', message: 'Key is required' });
+  } else if (!isValidKey(key, MAX_KEY_LENGTH)) {
+    errors.push({
+      field: 'key',
+      message: `Key must be a non-empty string with maximum length of ${MAX_KEY_LENGTH} characters`
+    });
+  }
+
+  // Validate value
+  if (value === undefined || value === null) {
+    errors.push({ field: 'value', message: 'Value is required' });
+  } else if (!isValidValueSize(value, MAX_VALUE_SIZE)) {
+    errors.push({
+      field: 'value',
+      message: `Value size exceeds maximum allowed size of ${MAX_VALUE_SIZE} bytes`
+    });
+  }
+
+  if (errors.length > 0) {
+    res.status(400).json({
+      success: false,
+      error: 'Validation failed',
+      errors
+    });
+    return;
+  }
+
+  next();
+}
