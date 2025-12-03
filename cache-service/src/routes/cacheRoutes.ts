@@ -237,4 +237,149 @@ router.get('/health', (req: Request, res: Response): void => {
   });
 });
 
+/**
+ * GET /debug/hashmap - Get detailed HashMap statistics
+ */
+router.get('/debug/hashmap', (req: Request, res: Response): void => {
+  try {
+    // Access the internal cache HashMap through the CacheManager
+    const cache = (cacheManager as any).cache;
+    const hashMapStats = cache.getStats();
+
+    const response: ApiResponse = {
+      success: true,
+      data: {
+        hashmap: {
+          size: hashMapStats.size,
+          capacity: hashMapStats.capacity,
+          loadFactor: hashMapStats.loadFactor,
+          loadFactorThreshold: 0.75,
+          usedBuckets: hashMapStats.usedBuckets,
+          emptyBuckets: hashMapStats.capacity - hashMapStats.usedBuckets,
+          maxChainLength: hashMapStats.maxChainLength,
+          avgChainLength: hashMapStats.avgChainLength,
+          collisionRate: ((hashMapStats.size - hashMapStats.usedBuckets) / hashMapStats.size * 100).toFixed(2) + '%'
+        },
+        interpretation: {
+          loadFactor: hashMapStats.loadFactor < 0.75
+            ? 'Healthy - below resize threshold'
+            : 'Will resize on next insertion',
+          collisions: hashMapStats.maxChainLength > 3
+            ? 'High collision rate detected'
+            : 'Low collision rate - good hash distribution',
+          efficiency: hashMapStats.avgChainLength < 2
+            ? 'Excellent O(1) performance'
+            : 'Some performance degradation due to collisions'
+        }
+      }
+    };
+
+    res.json(response);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get HashMap stats'
+    });
+  }
+});
+
+/**
+ * GET /debug/cache - Get detailed cache information with all entries
+ */
+router.get('/debug/cache', (req: Request, res: Response): void => {
+  try {
+    const entries = cacheManager.getAllEntries();
+    const stats = cacheManager.getStats();
+
+    // Group entries by their hash bucket
+    const cache = (cacheManager as any).cache;
+    const bucketDistribution: { [key: number]: string[] } = {};
+
+    entries.forEach(entry => {
+      // Calculate which bucket this key would go to
+      const hashValue = require('../../../shared/utils/helpers').djb2Hash(entry.key);
+      const bucketIndex = hashValue % cache.capacity;
+
+      if (!bucketDistribution[bucketIndex]) {
+        bucketDistribution[bucketIndex] = [];
+      }
+      bucketDistribution[bucketIndex].push(entry.key);
+    });
+
+    const response: ApiResponse = {
+      success: true,
+      data: {
+        summary: {
+          totalEntries: entries.length,
+          totalBuckets: cache.capacity,
+          usedBuckets: Object.keys(bucketDistribution).length,
+          emptyBuckets: cache.capacity - Object.keys(bucketDistribution).length
+        },
+        statistics: stats,
+        bucketDistribution,
+        entries: entries.map(entry => ({
+          key: entry.key,
+          value: entry.value,
+          ttl: entry.ttl,
+          createdAt: new Date(entry.createdAt).toISOString(),
+          expiresAt: entry.expiresAt ? new Date(entry.expiresAt).toISOString() : 'never',
+          lastAccessed: entry.lastAccessed ? new Date(entry.lastAccessed).toISOString() : 'never',
+          timeUntilExpiry: entry.expiresAt
+            ? Math.max(0, Math.round((entry.expiresAt - Date.now()) / 1000)) + 's'
+            : 'never'
+        }))
+      }
+    };
+
+    res.json(response);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get cache debug info'
+    });
+  }
+});
+
+/**
+ * GET /debug/lru - Get LRU order information
+ */
+router.get('/debug/lru', (req: Request, res: Response): void => {
+  try {
+    // Get all entries and their access times
+    const entries = cacheManager.getAllEntries();
+
+    // Sort by lastAccessed to show LRU order
+    const sortedByLRU = entries
+      .sort((a, b) => (a.lastAccessed || 0) - (b.lastAccessed || 0))
+      .map((entry, index) => ({
+        position: index + 1,
+        key: entry.key,
+        lastAccessed: entry.lastAccessed ? new Date(entry.lastAccessed).toISOString() : 'never',
+        timeSinceAccess: entry.lastAccessed
+          ? Math.round((Date.now() - entry.lastAccessed) / 1000) + 's ago'
+          : 'never accessed',
+        willBeEvictedNext: index === 0 ? 'YES - Least Recently Used' : 'No'
+      }));
+
+    const response: ApiResponse = {
+      success: true,
+      data: {
+        lruOrder: sortedByLRU,
+        interpretation: {
+          leastRecentlyUsed: sortedByLRU[0]?.key || 'N/A',
+          mostRecentlyUsed: sortedByLRU[sortedByLRU.length - 1]?.key || 'N/A',
+          nextToEvict: sortedByLRU[0]?.key || 'N/A'
+        }
+      }
+    };
+
+    res.json(response);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get LRU info'
+    });
+  }
+});
+
 export { router as cacheRoutes, cacheManager };
