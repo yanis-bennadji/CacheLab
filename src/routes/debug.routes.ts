@@ -10,6 +10,8 @@ router.get('/debug/load-factor', debugController.getLoadFactor);
 
 router.get('/debug/count', debugController.getCount);
 
+router.get('/debug/memory', debugController.getMemoryUsage);
+
 router.post('/debug/reset', debugController.resetCache);
 
 export default router;

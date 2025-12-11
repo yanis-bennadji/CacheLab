@@ -59,6 +59,12 @@ export interface ResetResponse {
     message: string;
 }
 
+export interface MemoryUsageResponse {
+    currentMemoryBytes: number;
+    maxMemoryBytes: number;
+    usagePercentage: number;
+}
+
 // Note: Les types de Request étendu ne sont pas nécessaires avec Express en ESM
 // On utilise directement Request dans les controllers avec les génériques
 

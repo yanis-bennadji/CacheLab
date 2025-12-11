@@ -4,7 +4,8 @@ import type {
     BucketSizeResponse,
     LoadFactorResponse,
     CountResponse,
-    ResetResponse
+    ResetResponse,
+    MemoryUsageResponse
 } from '../types/api.types.js';
 
 /**
@@ -34,5 +35,20 @@ export function getCount(req: Request, res: Response<CountResponse>): void {
 export function resetCache(req: Request, res: Response<ResetResponse>): void {
     cache.reset();
     res.json({ message: "Cache réinitialisé" });
+}
+
+/**
+ * Retourne l'utilisation mémoire actuelle du cache
+ */
+export function getMemoryUsage(req: Request, res: Response<MemoryUsageResponse>): void {
+    const currentMemoryBytes = cache.getMemoryUsage();
+    const maxMemoryBytes = cache.getMaxMemory();
+    const usagePercentage = (currentMemoryBytes / maxMemoryBytes) * 100;
+    
+    res.json({
+        currentMemoryBytes,
+        maxMemoryBytes,
+        usagePercentage: Math.round(usagePercentage * 100) / 100
+    });
 }
 
