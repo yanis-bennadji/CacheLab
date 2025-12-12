@@ -3,7 +3,6 @@ import * as debugController from '../controllers/debug.controller.js';
 
 const router = Router();
 
-// Endpoints de debug pour les tests
 router.get('/debug/bucket-size', debugController.getBucketSize);
 
 router.get('/debug/load-factor', debugController.getLoadFactor);

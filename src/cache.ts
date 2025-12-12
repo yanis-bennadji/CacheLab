@@ -26,7 +26,7 @@ class CacheStore {
         }
     }
 
-    // Estime la taille en octets d'une valeur
+    // * Estimation taille bytes d'une valeur
     private _estimateSize(value: any): number {
         const type = typeof value;
         
@@ -143,7 +143,7 @@ class CacheStore {
         return null;
     }
 
-    // Éviction LRU : supprime l'entrée la moins récemment utilisée
+    // ? A verif l'usage en détail mais supprime l'entrée la moins récente
     private _evictLRU(): void {
         let oldestEntry: CacheEntry | null = null;
         let oldestTime = Date.now();
@@ -174,7 +174,7 @@ class CacheStore {
         const entrySize = this._estimateSize(key) + this._estimateSize(value);
         const timestamp = Date.now();
         
-        // Si c'est une mise à jour, soustraire l'ancienne taille
+        // * Si c'est une mise à jour, soustraire l'ancienne taille
         if (!isNewKey) {
             const existingEntry = this._getEntry(key);
             if (existingEntry !== null) {
@@ -182,12 +182,12 @@ class CacheStore {
             }
         }
         
-        // Vérifier la mémoire et évincer si nécessaire
+        // * Vérifier la mémoire et évincer si nécessaire
         while (this.currentMemoryUsage + entrySize > this.MAX_MEMORY_BYTES && this.count() > 0) {
             this._evictLRU();
         }
         
-        // Vérifier le load factor avant d'insérer une nouvelle clé
+        // ! Vérifier le load factor avant d'insérer une nouvelle clé
         if (isNewKey) {
             const currentLoadFactor = this.getLoadFactor();
             if (currentLoadFactor >= this.LOAD_FACTOR_THRESHOLD) {

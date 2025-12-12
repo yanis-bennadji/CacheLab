@@ -4,19 +4,14 @@ import { validateCreateKey, validateUpdateKey } from '../middlewares/validation.
 
 const router = Router();
 
-// Lister toutes les clés
 router.get('/keys', cacheController.listKeys);
 
-// Créer une paire clé-valeur
 router.post('/keys', validateCreateKey, cacheController.createKey);
 
-// Lire une valeur
 router.get('/keys/:key', cacheController.getKey);
 
-// Modifier une valeur existante
 router.put('/keys/:key', validateUpdateKey, cacheController.updateKey);
 
-// Supprimer une clé
 router.delete('/keys/:key', cacheController.deleteKey);
 
 export default router;
